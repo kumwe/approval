@@ -93,7 +93,7 @@ final readonly class ApprovalService
             if ($expiresAt <= $now || $expiresAt > $now->add(new DateInterval('P7D'))) {
                 throw new InvalidArgumentException('Approval lifetime must be positive and no longer than seven days.');
             }
-            $id = $this->identifiers->uuid7()->toString();
+            $id = $this->identifiers->uuid4()->toString();
             $this->repository->insert($id, $rule, $binding, $expiresAt, $now);
             $this->ownership->record(
                 AuthorizationResource::item('approval_request', $id),
@@ -383,7 +383,7 @@ final readonly class ApprovalService
             $proof = $context->stepUpProof() ?? throw new ApprovalDenied();
             $proofId = $this->stepUp->consume($proof, $context, 'business.approval.' . $decision, $now);
             $this->repository->vote(
-                $this->identifiers->uuid7()->toString(),
+                $this->identifiers->uuid4()->toString(),
                 $requestId,
                 $context->actorId(),
                 $decision,
@@ -505,7 +505,7 @@ final readonly class ApprovalService
         array $metadata = [],
     ): void {
         $this->audit->record(new AuditEvent(
-            $this->identifiers->uuid7()->toString(),
+            $this->identifiers->uuid4()->toString(),
             $this->clock->now(),
             $context->actorId(),
             $action,

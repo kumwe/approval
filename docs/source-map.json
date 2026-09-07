@@ -1,0 +1,96 @@
+{
+  "schema": "kumwe-source-map/v2",
+  "source_repository": "kumwe/app",
+  "source_commit": "24ecf956423c18933e824b43cea1bfb9127a79a9",
+  "entries": [
+    {
+      "target": "src/ApprovalStatus.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalStatus.php"
+      ],
+      "sha256": "541be07f5ce1be42a44654999f6b6e6b3080c23da72c1e6813e6339ad1788b1e"
+    },
+    {
+      "target": "src/ApprovalRequestView.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalRequestView.php"
+      ],
+      "sha256": "8b910eafda6f6716b08c231321b5b85d8d0740b73a9c21e2fb7d6cab851616f0"
+    },
+    {
+      "target": "src/ApprovalService.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalService.php"
+      ],
+      "sha256": "3c45b24f34d9901ed859201813b96284f63b27d9dd5d9f3d07571841882adfc0"
+    },
+    {
+      "target": "src/ApprovalBinding.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalBinding.php"
+      ],
+      "sha256": "220f67077a555767fbe8442a1a7cd22f53d2298bd5c22215a6b15a0fbe44856b"
+    },
+    {
+      "target": "src/ApprovalRule.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalRule.php"
+      ],
+      "sha256": "e537dc3b18489d4e8a3c71710ab784e9e7fd386763f2ee01d6a0f8467dac2e33"
+    },
+    {
+      "target": "src/ConfigProvider.php",
+      "source": [],
+      "sha256": "93b577aee47710363f9cfa03ac61cbfeae9a1b31c5e20978bcbb22b05d713824"
+    },
+    {
+      "target": "src/ApprovalQueryService.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalQueryService.php"
+      ],
+      "sha256": "b0d8a588d28c8509b81e5bed2c6fc9ab57826cc4b1ecca6fe8e29e10e7d19619"
+    },
+    {
+      "target": "src/ApprovalQueryRepository.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalQueryRepository.php"
+      ],
+      "sha256": "886e836802be6165b98723abccb3dacd26125394c704640ea07f5d8165ba0f43"
+    },
+    {
+      "target": "src/StepUpProofConsumer.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/StepUpProofConsumer.php"
+      ],
+      "sha256": "4af3ef01182765f5316fa282aa2c9e55e35150654eee0fbd997c080f27c12b9c"
+    },
+    {
+      "target": "src/ApprovalRepository.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalRepository.php"
+      ],
+      "sha256": "ced062a03365858b4c7ab8dd3ee4320beee31bf7f234830f868d41ecfae28b9b"
+    },
+    {
+      "target": "src/ApprovalVoteView.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalVoteView.php"
+      ],
+      "sha256": "5f3addc31145d7155fb7f8c156ee408743f2695548fa418547317b96ce197f71"
+    },
+    {
+      "target": "src/ApprovalDenied.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalDenied.php"
+      ],
+      "sha256": "59c7f922731c9e2ccd8bba8a3c988b1ba9ce209933ae001998358a9111988d6f"
+    },
+    {
+      "target": "src/ApprovalRequest.php",
+      "source": [
+        "src/BusinessSecurity/Application/Approval/ApprovalRequest.php"
+      ],
+      "sha256": "ff62b4f9760ec5740139cf0bc77484a586dab42127fa02e028b7d020a3c6289e"
+    }
+  ]
+}

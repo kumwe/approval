@@ -1,0 +1,1 @@
+<?xml version="1.0"?><ruleset name="Approval"><rule ref="PSR12"/><file>src</file><arg name="extensions" value="php"/></ruleset>
