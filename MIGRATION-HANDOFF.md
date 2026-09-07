@@ -61,7 +61,7 @@ ownership:
       sha256: "197ca1d89211a46d56b46b2caeaf0881ca41e296b1b038774654bbc7fa1a01d4"
     -
       path: "resources/service-map/v1.json"
-      sha256: "d9177285b63019f7058f30ad5d47b23f259520c480c01bda5161417aa6950852"
+      sha256: "4416b1dea4d865d5c1e2e348167b03eb0de5c321c4edb004d60121200943a6e3"
   intentionally_excluded:
     - "MembershipDirectory belongs to Access"
     - "App persistence, authorization authority, protected workflows and integration tests"
