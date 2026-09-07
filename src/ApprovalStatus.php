@@ -26,6 +26,9 @@ enum ApprovalStatus: string
     /** An administrator revoked a previously approved request. @since 0.1.0 */
     case Revoked = 'revoked';
 
+    /** Exclusive expiry was materialized by an authorized host. @since 0.1.0 */
+    case Expired = 'expired';
+
     /** The bound high-impact action consumed the request. @since 0.1.0 */
     case Consumed = 'consumed';
 }

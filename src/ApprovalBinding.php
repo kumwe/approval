@@ -60,6 +60,9 @@ final readonly class ApprovalBinding
                 throw new InvalidArgumentException(sprintf('The approval %s is invalid.', $name));
             }
         }
+        if ($workspace !== null && $organization === null) {
+            throw new InvalidArgumentException('An approval workspace requires an organization.');
+        }
         if ($resourceVersion < 1) {
             throw new InvalidArgumentException('An approval requires a positive resource version.');
         }

@@ -54,6 +54,7 @@ final readonly class ApprovalRequest
         if (
             $ruleVersion < 1
             || $quorum < 1
+            || $quorum > 32
             || $version < 1
             || ($approverRoleId !== null && !\Ramsey\Uuid\Uuid::isValid($approverRoleId))
         ) {
