@@ -4,78 +4,89 @@ This is the common Kumwe package release contract. Apply it to every new extract
 
 ## One quality gate
 
-The repository's CI workflow is callable. Pull requests and release runs execute the same
-PHP matrix, package-owned behavior/boundary/conformance tests, static checks, API/manifest
-checks, production autoload smoke and clean archive consumer checks. The stable required
-check is **Package gate**, which fails when either package checks or release regression
-tests fail or are skipped. Package-specific runtime requirements and Studio evidence remain
-part of their owning package; they are not erased by a common workflow.
+Pull requests and default-branch release runs execute the same reusable CI: the PHP
+matrix, package-owned behavior/boundary/conformance tests, static checks, API/manifest
+checks, production autoload smoke and clean archive consumer checks. **Package gate**
+requires the package checks and release automation regression tests to succeed; a failed
+or skipped required job blocks the aggregate. Package-specific runtime requirements and
+Studio evidence remain part of their owning package.
+
+A complete implementation with green source CI is `package-implemented`. Observed
+publication establishes `package-released`. Independent artifact and clean-consumer verification establishes
+`release-verified`. Keep these evidence states separate: publication does not supply its
+own independent attestation, and an attestation is not a normal publication prerequisite.
 
 ## Rebases and release identity
 
-Human maintainers rebase PRs into the repository's default branch. Release automation
-discovers that branch dynamically, reruns the complete gate on the resulting commit,
-checks out the event's exact github.sha, and verifies local HEAD matches it. A PR commit
-SHA is never embedded as the future release identity. Historical extraction baselines,
-third-party action pins and independently verified dependency release SHAs retain their
-separate provenance purpose.
+Maintainers rebase reviewed PRs into the repository's current default branch. Release
+automation discovers that branch dynamically, reruns the complete gate on the resulting
+commit, checks out the event's exact `github.sha`, and verifies local HEAD matches it.
+A PR commit SHA is never embedded as the future release identity. Historical extraction
+baselines, third-party action pins and verified dependency SHAs retain their own purpose.
 
 The newest stable changelog record selects the version. An Unreleased-only changelog
-does not publish. An empty Unreleased section before a recorded version is supported.
+publishes nothing. An empty Unreleased section before a recorded version is supported.
 The recorded version and package release manifests must agree before merge.
-
-## Repository setup
-
-Run the same administrator setup once for the package family, from any checkout:
-
-```bash
-bash tools/configure-release-repositories.sh --check
-bash tools/configure-release-repositories.sh --apply
-```
-
-The setup manages its own named ruleset, requires PRs and the Package gate, prohibits
-default-branch deletion/force pushes, permits linear rebase merges, and enables immutable
-releases. It preserves unrelated rulesets. It needs an existing authenticated GitHub CLI
-session with repository Administration access. The workflow itself uses Contents access
-and must never store an administration credential.
-
-Committing a ruleset JSON file does not activate it. Packagist registration does not
-configure branch protection or immutable releases. Missing settings are reported as
-release prerequisites, never disguised as unit-test failures or a successful publication.
 
 ## Publication, retries and package contents
 
-Publication is serialized per branch, with pending default-branch releases queued. The helper checks live
-branch protection, then verifies or
-creates the exact semantic tag and publishes in the same run; a tag made by GITHUB_TOKEN
-does not trigger another workflow. Both lightweight and annotated tags are resolved to
-commits. Only a confirmed HTTP 404 permits creation; authentication, rate-limit and server
-errors fail without mutations. Existing tags and releases are never moved, deleted or
-replaced. A published immutable release on an ancestor is verified on subsequent pushes.
-An unpublished tag can be completed only when its commit is the fully tested event commit.
+Publication is serialized per branch, with pending default-branch release runs queued.
+The helper verifies or creates the exact semantic tag and publishes in the same run;
+a tag created with `GITHUB_TOKEN` does not trigger a second workflow. Lightweight and
+annotated tags are resolved to commits. Only a confirmed HTTP 404 permits creation;
+authentication, rate-limit and server errors fail without authorizing that creation.
 
-Historical mutable releases remain historical. Enabling immutability does not repair old
-releases: record an unused successor version with updated package manifests and let the
-post-rebase gate publish it. Use Run workflow on the default branch to retry after setup.
+Existing tags and releases are never moved, deleted or replaced. An existing published
+release must match its stable version tag and source identity. Its tag may be an ancestor
+of the tested default-branch commit when later changes retain the same release record.
+An unpublished tag can be completed only at the exact commit tested by the current run.
+The helper checks the final published release and tag again before reporting success.
+Use the current workflow on the default branch to retry a failed publication.
+
+Normal publication does not require branch protection, a managed ruleset, GitHub's
+optional immutable-release flag or an external attestation. Existing GitHub rules and
+permissions still apply; automation does not bypass them or change repository settings.
+A published release is described as platform-immutable only when GitHub confirms that
+state. Accepting an existing mutable release never grants permission to replace it.
 
 Composer and GitHub source archives obey the repository's export exclusions. Source,
 runtime resources and public manifests remain package-specific; development tools and
-release automation must stay excluded. Packagist follows the semantic tags. Preserve the
-clean no-dev archive consumer gate; do not substitute a path repository or source fallback.
+release automation stay excluded. Packagist follows semantic tags. Preserve the clean
+no-dev archive consumer gate; do not substitute a path repository or source fallback.
 
-## Upstream release evidence
+## Upstream package identity and independent evidence
 
-Access Control and Business Definition additionally verify the exact resolved Kumwe
-dependencies against live immutable releases, tag/source/dist references and independent
-external attestations. A stale text flag cannot prove a release, and an unconditional
-failure cannot discover a repaired one. Their existing unresolved evidence remains blocked
-until real successor releases and independent verification are available.
+Access Control and Business Definition run `tools/check-package-dependencies.sh` after
+production Composer installation and before publication. Every selected Kumwe runtime
+dependency must have a published stable release whose version tag resolves to the exact
+Composer source and dist commit. Direct Kumwe requirements must use exact stable versions.
+The checker validates these live identities without requiring GitHub immutability or
+external attestations. Dependency identity fixtures remain part of source CI.
+
+`tools/check-release-dependencies.sh` remains a separate, optional strict audit in those
+packages. It additionally requires platform-immutable releases and independent evidence,
+including released-commit workflow and clean-consumer observations. Use that evidence for
+`release-verified` and downstream adoption decisions under the extraction handoff protocol.
+Normal publication does not clear unresolved evidence or change those adoption states.
+
+## Optional repository hardening
+
+Administrators may use the `tools/configure-release-repositories.sh` to
+require PRs and **Package gate**, protect the default branch and enable GitHub immutable
+releases. Its default `--check` is read-only; only an explicit `--apply` changes settings.
+Ordinary release runs do not invoke this helper. Repository
+hardening is independent of package publication and source CI; its absence is not a
+package-test failure. Administrator credentials do not belong in publication workflows.
 
 ## Regression requirements
 
-Every package owns the common Bash release transition and setup fixtures. They exercise
-real Git histories including a rebase, successful publication and retry, immutable ancestor
-verification, annotated tags, mismatched commits, absent protection, mutable releases and
-API failures. Update these tests with the automation. Run them before opening the PR and
-verify the required Package gate on GitHub. Do not report an actual release as successful
-until the default-branch publication run and immutable release metadata prove it.
+Keep the common release transition fixtures aligned across packages. They cover real Git
+histories with rebases, publication, retries, ancestor tags, annotated tags, mismatched
+commits, optional platform policies and API failures. Preserve the separate setup helper
+fixtures and, where applicable, both dependency identity and strict evidence audit fixtures.
+Run the complete package quality command and release regressions before opening the PR,
+then verify **Package gate** on GitHub and again on the actual default-branch release run.
+
+Confirm publication from the successful default-branch run and the actual release/tag
+metadata. Report platform immutability only when observed. Complete independent evidence
+before declaring `release-verified` or marking the package ready for downstream adoption.
