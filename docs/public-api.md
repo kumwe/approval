@@ -1,5 +1,7 @@
 # Public API
 
+Request/vote projections validate identity grammar, organization/workspace parentage, positive ordered expiry and quorum/count bounds through 32. Vote lists contain at most 32 distinct vote and approver identities. Notes are nonblank UTF-8 with at most 500 characters; tabs and line breaks are allowed, other control characters are refused. The service validates notes before transaction and replay-consumption calls. Invalid projections throw InvalidArgumentException; invalid decision notes use the stable non-enumerating ApprovalDenied refusal.
+
 The complete 15-type signature contract is resources/public-api/v1.json.
 Constructors validate immutable values. ApprovalDenied uses one non-enumerating message.
 Mutating services propagate host failures for transaction rollback. Each declaration
