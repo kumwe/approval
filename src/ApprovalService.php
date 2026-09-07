@@ -17,7 +17,7 @@ use Kumwe\Audit\Domain\AuditEvent;
 use Kumwe\Access\MembershipDirectory;
 use Kumwe\Access\Capability;
 use Psr\Clock\ClockInterface;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidFactoryInterface;
 
 /**
  * Canonical maker-checker workflow for every high-impact application service and adapter.
@@ -37,6 +37,7 @@ final readonly class ApprovalService
      * @param  ResourceSiteOwnershipWriter  $ownership      Site ownership for item-level approval decisions.
      * @param  AuditRecorder                $audit          Durable audit sink.
      * @param  ClockInterface               $clock          Trusted current time.
+     * @param  UuidFactoryInterface         $identifiers    Explicit request/vote/audit identity source.
      *
      * @since  0.1.0
      */
@@ -49,6 +50,7 @@ final readonly class ApprovalService
         private ResourceSiteOwnershipWriter $ownership,
         private AuditRecorder $audit,
         private ClockInterface $clock,
+        private UuidFactoryInterface $identifiers,
     ) {
     }
 
@@ -77,29 +79,21 @@ final readonly class ApprovalService
             Capability::fromString('business.approval.request'),
             AuthorizationResource::item($binding->resourceType(), $binding->resourceId()),
         );
-        $rule = $this->repository->rule($binding);
-        if ($rule === null) {
-            return null;
-        }
-        if (!$this->repository->requesterEligible($rule, $context)) {
-            throw new ApprovalDenied();
-        }
-        $now = $this->clock->now();
-        $expiresAt = $now->add($lifetime ?? new DateInterval('P1D'));
-        if ($expiresAt <= $now || $expiresAt > $now->add(new DateInterval('P7D'))) {
-            throw new InvalidArgumentException('Approval lifetime must be positive and no longer than seven days.');
-        }
-        $id = Uuid::uuid7()->toString();
-
-        return $this->transactions->transactional(function () use (
-            $context,
-            $binding,
-            $rule,
-            $now,
-            $expiresAt,
-            $id,
-        ): string {
+        return $this->transactions->transactional(function () use ($context, $binding, $lifetime): ?string {
             $this->assertCurrentMembership($context, true);
+            $rule = $this->repository->rule($binding, true);
+            if ($rule === null) {
+                return null;
+            }
+            if (!$this->repository->requesterEligible($rule, $context)) {
+                throw new ApprovalDenied();
+            }
+            $now = $this->clock->now();
+            $expiresAt = $now->add($lifetime ?? new DateInterval('P1D'));
+            if ($expiresAt <= $now || $expiresAt > $now->add(new DateInterval('P7D'))) {
+                throw new InvalidArgumentException('Approval lifetime must be positive and no longer than seven days.');
+            }
+            $id = $this->identifiers->uuid7()->toString();
             $this->repository->insert($id, $rule, $binding, $expiresAt, $now);
             $this->ownership->record(
                 AuthorizationResource::item('approval_request', $id),
@@ -182,6 +176,7 @@ final readonly class ApprovalService
                 || $request->status !== ApprovalStatus::Pending
                 || $request->binding->requesterId() !== $context->actorId()
                 || $request->binding->contextFingerprint() !== $context->approvalFingerprint()
+                || $request->expiresAt <= $this->clock->now()
             ) {
                 throw new ApprovalDenied();
             }
@@ -243,6 +238,47 @@ final readonly class ApprovalService
     }
 
     /**
+     * Materialize exclusive expiry for a scoped pending or approved request.
+     *
+     * @param ExecutionContext $context Trusted manager or scheduler identity with management authority.
+     * @param string $requestId Exact request identity.
+     * @return void
+     * @throws ApprovalDenied If absent, out of scope, terminal or not yet expired.
+     * @since 0.1.0
+     */
+    public function expire(ExecutionContext $context, string $requestId): void
+    {
+        $this->authorization->assertAllowed(
+            $context,
+            Capability::fromString('business.approval.manage'),
+            AuthorizationResource::item('approval_request', $requestId),
+        );
+        $this->transactions->transactional(function () use ($context, $requestId): void {
+            $request = $this->repository->lock($requestId);
+            $now = $this->clock->now();
+            if (
+                $request === null
+                || !in_array($request->status, [ApprovalStatus::Pending, ApprovalStatus::Approved], true)
+                || $request->expiresAt > $now
+                || $request->binding->siteIdentifier() !== $context->site()->identifier()
+                || $request->binding->organization() !== $context->organization()?->identifier()
+                || $request->binding->workspace() !== $context->workspace()?->identifier()
+            ) {
+                throw new ApprovalDenied();
+            }
+            $this->assertCurrentMembership($context, true);
+            $this->repository->transition(
+                $requestId,
+                $request->status,
+                ApprovalStatus::Expired,
+                $request->version,
+                $now,
+            );
+            $this->audit($context, 'approval.expire', $requestId);
+        });
+    }
+
+    /**
      * Atomically consume an approved request for the exact bound mutation.
      *
      * Application services call this inside their own transaction immediately before changing the
@@ -272,6 +308,7 @@ final readonly class ApprovalService
             ) {
                 throw new ApprovalDenied();
             }
+            $this->assertCurrentRule($request);
             $this->assertCurrentMembership($context, true);
             $proof = $context->stepUpProof() ?? throw new ApprovalDenied();
             $this->stepUp->consume($proof, $context, $binding->action(), $now);
@@ -328,10 +365,15 @@ final readonly class ApprovalService
                 $request === null
                 || $request->status !== ApprovalStatus::Pending
                 || $request->expiresAt <= $now
+                || $request->binding->siteIdentifier() !== $context->site()->identifier()
+                || $request->binding->organization() !== $context->organization()?->identifier()
+                || $request->binding->workspace() !== $context->workspace()?->identifier()
+                || ($request->distinctActors && $request->binding->requesterId() === $context->actorId())
                 || !$this->repository->approverEligible($request, $context)
             ) {
                 throw new ApprovalDenied();
             }
+            $this->assertCurrentRule($request);
             $this->authorization->assertAllowed(
                 $context,
                 Capability::fromString($request->approvalAction),
@@ -341,7 +383,7 @@ final readonly class ApprovalService
             $proof = $context->stepUpProof() ?? throw new ApprovalDenied();
             $proofId = $this->stepUp->consume($proof, $context, 'business.approval.' . $decision, $now);
             $this->repository->vote(
-                Uuid::uuid7()->toString(),
+                $this->identifiers->uuid7()->toString(),
                 $requestId,
                 $context->actorId(),
                 $decision,
@@ -370,6 +412,26 @@ final readonly class ApprovalService
 
             return $status;
         });
+    }
+
+    /**
+     * Refuse a changed, replaced or deactivated policy while holding the host rule lock.
+     *
+     * @param ApprovalRequest $request Frozen request policy to compare with live authority.
+     * @return void
+     * @throws ApprovalDenied When the active rule does not exactly match the frozen policy.
+     * @since 0.1.0
+     */
+    private function assertCurrentRule(ApprovalRequest $request): void
+    {
+        $rule = $this->repository->rule($request->binding, true);
+        if (
+            $rule === null || $rule->id !== $request->ruleId || $rule->version !== $request->ruleVersion
+            || $rule->approvalAction !== $request->approvalAction || $rule->quorum !== $request->quorum
+            || $rule->distinctActors !== $request->distinctActors || $rule->approverRoleId !== $request->approverRoleId
+        ) {
+            throw new ApprovalDenied();
+        }
     }
 
     /**
@@ -443,7 +505,7 @@ final readonly class ApprovalService
         array $metadata = [],
     ): void {
         $this->audit->record(new AuditEvent(
-            Uuid::uuid7()->toString(),
+            $this->identifiers->uuid7()->toString(),
             $this->clock->now(),
             $context->actorId(),
             $action,

@@ -18,12 +18,13 @@ interface ApprovalRepository
      * Resolve the single active rule matching an exact action binding.
      *
      * @param   ApprovalBinding  $binding  Site, organization, action and resource binding.
+     * @param   bool             $lock     Hold live rule and eligibility state until transaction end.
      *
      * @return  ?ApprovalRule  Active matching rule, or null when the action requires no approval.
      *
      * @since   0.1.0
      */
-    public function rule(ApprovalBinding $binding): ?ApprovalRule;
+    public function rule(ApprovalBinding $binding, bool $lock = false): ?ApprovalRule;
 
     /**
      * Check the requester's live role eligibility for a selected rule.
