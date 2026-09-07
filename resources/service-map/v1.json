@@ -1,7 +1,7 @@
 {
   "schema": "kumwe-service-map/v1",
   "package": "kumwe/approval",
-  "release": "unreleased",
+  "release": "0.1.0",
   "config_provider": "Kumwe\\Approval\\ConfigProvider",
   "services": {
     "Kumwe\\Approval\\ApprovalService": {
