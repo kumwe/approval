@@ -29,7 +29,7 @@ source:
     - "kumwe/access-context"
     - "kumwe/access-control"
     - "kumwe/audit"
-    - "kumwe/transaction"
+    - "kumwe/transaction 0.1.2 at 56c8eb14a70bd3f1ed7eaeae7196a07d6627bf03"
   active_related_pull_requests:
     - "https://github.com/kumwe/access-control/pull/6"
     - "https://github.com/kumwe/audit/pull/5"
@@ -412,7 +412,7 @@ next_task:
     - "Successor release and exact dependencies are independently verified"
     - "App source drift is reconciled"
   consumer_repository: "kumwe/app"
-  dependency_or_native_change: "Keep the current coherent Context/Access/Audit/Transaction 0.1.0 graph until compatible published Access and Audit successors exist; then update all related exact pins together using Composer."
+  dependency_or_native_change: "Transaction is pinned to published 0.1.2 at 56c8eb14a70bd3f1ed7eaeae7196a07d6627bf03. Keep the coherent Context/Access/Audit 0.1.0 tuple until compatible Access and Audit successors are published, then advance those exact pins together."
   namespace_or_api_replacements:
     - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalBinding => Kumwe\\Approval\\ApprovalBinding"
     - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalDenied => Kumwe\\Approval\\ApprovalDenied"
@@ -526,3 +526,8 @@ Newer portable behavior must move upstream first; preserve App authority, persis
 ## Validation recipe and observed local results
 
 Run composer check and release automation regressions; prove the no-dev classmap-authoritative consumer and real Laminas service construction. Exact final tested heads, archive digests and external release observations are recorded outside the tested tree.
+
+Transaction 0.1.2 is published at commit `56c8eb14a70bd3f1ed7eaeae7196a07d6627bf03`.
+Its TransactionManager source is byte-identical to 0.1.0 and it has no Kumwe runtime
+dependencies. The exact tag, Composer source and dist references were verified before
+updating this package. This dependency update does not require an Access/Audit release.
