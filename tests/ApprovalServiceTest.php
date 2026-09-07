@@ -107,6 +107,22 @@ final class ApprovalServiceTest extends TestCase
             ->willReturnCallback(function (): ApprovalRule { self::assertTrue($this->inTransaction); return $this->rule(); });
     }
 
+    #[DataProvider('invalidNotes')]
+    public function testMalformedNotesFailBeforeAnyTransactionOrReplayConsumption(string $reason): void
+    {
+        $this->repository()->expects(self::never())->method('lock');
+        $this->proofs()->expects(self::never())->method('consume');
+        $this->expectException(ApprovalDenied::class);
+        $this->service()->approve($this->context('checker'), self::REQUEST, $reason);
+    }
+
+    public static function invalidNotes(): iterable
+    {
+        foreach (["\xff", "note\0hidden", "note\x1B", str_repeat('é', 501)] as $reason) {
+            yield [$reason];
+        }
+    }
+
     public function testRequestLocksRuleAndWritesOwnershipAndAuditInsideTransaction(): void
     {
         $context = $this->context(); $binding = $this->binding($context); $this->currentRule();

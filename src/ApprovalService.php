@@ -349,7 +349,12 @@ final readonly class ApprovalService
             AuthorizationResource::item('approval_request', $requestId),
         );
         $reason = $reason === null ? null : trim($reason);
-        if ($reason !== null && ($reason === '' || mb_strlen($reason) > 500)) {
+        if (
+            $reason !== null && (
+                $reason === '' || !mb_check_encoding($reason, 'UTF-8') || mb_strlen($reason, 'UTF-8') > 500
+                || preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', $reason) === 1
+            )
+        ) {
             throw new ApprovalDenied();
         }
 
