@@ -14,10 +14,12 @@ adoption replaces old imports and DI and removes implementation-owned ApprovalSe
 cases now owned here. Keep host database/concurrency, two-approver, step-up, authorization,
 protected-action, audit rollback and delivery tests. Source changes require reconciliation.
 
-Access/Audit review branches and the transitive Canonical JSON API are candidate inputs,
+The merged Access main branch and Audit review branch and the transitive Canonical JSON API are candidate inputs,
 not release evidence. Release admission rejects branch requirements and requires exact
 stable pins and external attestations. No publication or App adoption is claimed.
 
 Validation covers behavior/contract tests, max-level source PHPStan, explicit real
 Laminas construction and a no-dev authoritative archive consumer. PR checks bind evidence
 to the final head; independent upstream attestation remains outstanding.
+
+Access resolves as `dev-main` after PR #4 merged and its review branch was deleted. Reviewed main commit `54dbaa1dbffeb09ba390a5e75e8adc951c437a41` preserves the tested Access source, Composer metadata, runtime resources and tests; only release automation and documentation differ.
