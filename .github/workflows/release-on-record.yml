@@ -38,7 +38,9 @@ jobs:
 
       - name: Read the release record
         id: record
-        run: echo "version=$(bash tools/read-release-record.sh < CHANGELOG.md)" >> "$GITHUB_OUTPUT"
+        run: |
+          version="$(bash tools/read-release-record.sh < CHANGELOG.md)"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up PHP for dependency verification
         if: steps.record.outputs.version != ''
