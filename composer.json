@@ -70,6 +70,7 @@
       "@test",
       "@architecture",
       "@api",
+      "@manifests",
       "@security",
       "@autoload:smoke",
       "@container:smoke",
@@ -81,6 +82,7 @@
     "container:smoke": "php resources/toolchain/service-manager-smoke.php",
     "examples": "php examples/typed-consumer.php",
     "clean-consumer": "php tools/verify-clean-consumer.php",
-    "release:integrity": "bash tools/test-release-integrity.sh"
+    "release:integrity": "bash tools/test-release-integrity.sh",
+    "manifests": "php tools/verify-governed-manifests.php"
   }
 }

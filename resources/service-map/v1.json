@@ -1,28 +1,22 @@
 {
-    "schema": "kumwe-service-map/v1",
+    "schema": "kumwe-package-service-map/v1",
     "package": "kumwe/approval",
     "release": "0.1.1",
     "config_provider": "Kumwe\\Approval\\ConfigProvider",
-    "services": {
-        "Kumwe\\Approval\\ApprovalService": {
+    "provider_absence_reason": null,
+    "factories": [
+        {
+            "service": "Kumwe\\Approval\\ApprovalService",
             "factory": "Kumwe\\Approval\\Container\\ApprovalServiceFactory",
-            "shared": true
+            "lifetime": "shared"
         },
-        "Kumwe\\Approval\\ApprovalQueryService": {
+        {
+            "service": "Kumwe\\Approval\\ApprovalQueryService",
             "factory": "Kumwe\\Approval\\Container\\ApprovalQueryServiceFactory",
-            "shared": true
+            "lifetime": "shared"
         }
-    },
-    "host_ports": [
-        "Kumwe\\Approval\\ApprovalRepository",
-        "Kumwe\\Approval\\ApprovalQueryRepository",
-        "Kumwe\\Approval\\StepUpProofConsumer",
-        "Kumwe\\Access\\MembershipDirectory",
-        "Kumwe\\Access\\AuthorizationGateway",
-        "Kumwe\\Access\\ResourceSiteOwnershipWriter",
-        "Kumwe\\Audit\\Application\\AuditRecorder",
-        "Kumwe\\Transaction\\Contract\\TransactionManager",
-        "Psr\\Clock\\ClockInterface",
-        "Ramsey\\Uuid\\UuidFactoryInterface"
-    ]
+    ],
+    "aliases": [],
+    "delegators": [],
+    "configuration_keys": []
 }
