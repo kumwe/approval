@@ -14,7 +14,7 @@ foreach (['capabilities', 'service-map'] as $name) {
     $path = 'resources/' . $name . '/v1.json';
     $manifest = $read($path);
     $schema = $read('tools/schemas/package-' . $name . '.v1.schema.json');
-    contractSchema($manifest, $schema, $schema, $path);
+    contractSchema(json_decode(file_get_contents($root . "/" . $path), false, 512, JSON_THROW_ON_ERROR), $schema, $schema, $path);
     if ($manifest['package'] !== $composer['name'] || $manifest['release'] !== $api['release']) {
         throw new RuntimeException($path . ': package/release differs from the canonical API.');
     }
@@ -118,7 +118,7 @@ function contractSchema(mixed $value, array $schema, array $root, string $path):
         $valid = false;
         foreach ((array) $schema['type'] as $type) {
             $valid = $valid || match ($type) {
-                'object' => is_array($value) && ($value === [] || !array_is_list($value)),
+                'object' => is_object($value),
                 'array' => is_array($value) && array_is_list($value),
                 'string' => is_string($value), 'integer' => is_int($value),
                 'boolean' => is_bool($value), 'null' => $value === null,
@@ -145,6 +145,9 @@ function contractSchema(mixed $value, array $schema, array $root, string $path):
     }
     if (is_int($value) && isset($schema['minimum']) && $value < $schema['minimum']) {
         throw new RuntimeException($path . ': value is below the minimum.');
+    }
+    if (is_object($value)) {
+        $value = (array) $value;
     }
     if (!is_array($value)) {
         return;
