@@ -2,6 +2,8 @@
 
 ## 0.1.1
 
+- Select published Transaction 0.1.2 without changing the coherent Access/Audit dependency tuple.
+
 - Validate approval projections, vote identity/uniqueness, quorum bounds, scope parents and expiry. Reject invalid UTF-8 and control characters in notes before replay or persistence side effects. Preserve the solvable published dependency graph.
 - Refresh extraction handoff and library-owned validation evidence; App adoption remains a separate task.
 
