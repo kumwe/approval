@@ -65,6 +65,16 @@ final class ApprovalServiceFactory
         if (!$identifiers instanceof UuidFactoryInterface) {
             throw new InvalidArgumentException("Host binding UuidFactoryInterface has the wrong type.");
         }
-        return new ApprovalService($repository, $stepUp, $memberships, $transactions, $authorization, $ownership, $audit, $clock, $identifiers);
+        return new ApprovalService(
+            $repository,
+            $stepUp,
+            $memberships,
+            $transactions,
+            $authorization,
+            $ownership,
+            $audit,
+            $clock,
+            $identifiers,
+        );
     }
 }

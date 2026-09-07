@@ -8,3 +8,8 @@
 /.gitattributes export-ignore
 /AGENTS.md export-ignore
 /composer.lock export-ignore
+/vendor export-ignore
+/.phpstan.cache export-ignore
+/.phpunit.cache export-ignore
+/.phpunit.result.cache export-ignore
+/dist export-ignore
