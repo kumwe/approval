@@ -8,7 +8,7 @@
     "php": "^8.5",
     "ext-mbstring": "*",
     "kumwe/access-context": "0.1.0",
-    "kumwe/access-control": "dev-agent/access-membership-di-completion",
+    "kumwe/access-control": "dev-main",
     "kumwe/audit": "dev-agent/extract-audit-v2",
     "kumwe/transaction": "0.1.0",
     "psr/clock": "^1.0",
