@@ -1,7 +1,7 @@
 {
   "schema": "kumwe-package-capabilities/v1",
   "package": "kumwe/approval",
-  "release": "unreleased",
+  "release": "0.1.0",
   "capabilities": [
     {
       "id": "approval.binding",
