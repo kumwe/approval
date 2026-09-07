@@ -123,7 +123,32 @@ final class ContractTest extends TestCase
     {
         return [['ruleVersion', 0], ['requiredQuorum', 0], ['resourceVersion', 0],
             ['approvalCount', -1], ['approverRoleId', 'bad-role'], ['payloadDigest', 'bad'],
-            ['bindingDigest', 'bad'], ['votes', [new \stdClass()]]];
+            ['bindingDigest', 'bad'], ['votes', [new \stdClass()]], ['id', 'bad-uuid'],
+            ['ruleCode', 'bad code'], ['requesterId', ''], ['action', 'INVALID'], ['resourceType', 'INVALID'],
+            ['resourceId', "bad\n"], ['siteIdentifier', ''], ['workspaceIdentifier', 'workspace'],
+            ['organizationIdentifier', 'INVALID'], ['requiredQuorum', 33], ['approvalCount', 33],
+            ['expiresAt', new DateTimeImmutable('2026-09-07T10:00:00Z')],
+            ['votes', array_fill(0, 33, new ApprovalVoteView(self::UUID, 'checker', 'approve', null, new DateTimeImmutable()))],
+            ['votes', array_fill(0, 2, new ApprovalVoteView(self::UUID, 'checker', 'approve', null, new DateTimeImmutable()))]];
+    }
+
+    #[DataProvider('invalidVoteFields')]
+    public function testVoteProjectionRejectsMalformedIdentityAndNotes(int $field, mixed $replacement): void
+    {
+        $args = [self::UUID, 'checker', 'approve', 'Reviewed', new DateTimeImmutable('2026-09-07T10:00:00Z')];
+        $args[$field] = $replacement;
+        $this->expectException(InvalidArgumentException::class);
+        new ApprovalVoteView(...$args);
+    }
+
+    public static function invalidVoteFields(): iterable
+    {
+        yield [0, 'bad-uuid'];
+        yield [1, ''];
+        yield [1, "checker\n"];
+        foreach ([' ', "\xff", "truncated\xc3", "note\0hidden", str_repeat('é', 501)] as $reason) {
+            yield [3, $reason];
+        }
     }
 
 }

@@ -79,10 +79,35 @@ final readonly class ApprovalRequestView
             $ruleVersion < 1
             || $resourceVersion < 1
             || $requiredQuorum < 1
+            || $requiredQuorum > 32
             || $approvalCount < 0
+            || $approvalCount > 32
             || $version < 1
         ) {
             throw new InvalidArgumentException('An approval request projection has invalid counters.');
+        }
+        if (
+            !\Ramsey\Uuid\Uuid::isValid($id)
+            || preg_match('/^[a-z][a-z0-9._:-]{0,190}$/D', $ruleCode) !== 1
+            || $expiresAt <= $createdAt
+            || ($workspaceIdentifier !== null && $organizationIdentifier === null)
+        ) {
+            throw new InvalidArgumentException('An approval request projection has invalid identity, scope or expiry.');
+        }
+        foreach ([$requesterId, $resourceId, $siteIdentifier] as $identity) {
+            if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{0,190}$/D', $identity) !== 1) {
+                throw new InvalidArgumentException('An approval request projection has an invalid identity.');
+            }
+        }
+        foreach ([$action, $resourceType] as $token) {
+            if (preg_match('/^[a-z][a-z0-9._:-]{0,126}$/D', $token) !== 1) {
+                throw new InvalidArgumentException('An approval request projection has an invalid action or resource.');
+            }
+        }
+        foreach ([$organizationIdentifier, $workspaceIdentifier] as $scope) {
+            if ($scope !== null && preg_match('/^[a-z0-9][a-z0-9._:-]{0,190}$/D', $scope) !== 1) {
+                throw new InvalidArgumentException('An approval request projection has an invalid scope.');
+            }
         }
         if (Capability::fromString($approvalAction)->value() !== $approvalAction) {
             throw new InvalidArgumentException('An approval request projection has an invalid checker capability.');
@@ -94,13 +119,21 @@ final readonly class ApprovalRequestView
             preg_match('/^[a-f0-9]{64}$/D', $payloadDigest) !== 1
             || preg_match('/^[a-f0-9]{64}$/D', $bindingDigest) !== 1
             || !array_is_list($votes)
+            || count($votes) > 32
         ) {
             throw new InvalidArgumentException('An approval request projection has invalid evidence.');
         }
+        $identities = [];
+        $approvers = [];
         foreach ($votes as $vote) {
             if (!$vote instanceof ApprovalVoteView) {
                 throw new InvalidArgumentException('An approval request projection has an invalid vote.');
             }
+            if (isset($identities[$vote->id]) || isset($approvers[$vote->approverId])) {
+                throw new InvalidArgumentException('An approval request projection contains duplicate votes.');
+            }
+            $identities[$vote->id] = true;
+            $approvers[$vote->approverId] = true;
         }
     }
 }

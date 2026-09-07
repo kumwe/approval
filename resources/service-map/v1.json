@@ -1,28 +1,28 @@
 {
-  "schema": "kumwe-service-map/v1",
-  "package": "kumwe/approval",
-  "release": "0.1.0",
-  "config_provider": "Kumwe\\Approval\\ConfigProvider",
-  "services": {
-    "Kumwe\\Approval\\ApprovalService": {
-      "factory": "Kumwe\\Approval\\Container\\ApprovalServiceFactory",
-      "shared": true
+    "schema": "kumwe-service-map/v1",
+    "package": "kumwe/approval",
+    "release": "0.1.1",
+    "config_provider": "Kumwe\\Approval\\ConfigProvider",
+    "services": {
+        "Kumwe\\Approval\\ApprovalService": {
+            "factory": "Kumwe\\Approval\\Container\\ApprovalServiceFactory",
+            "shared": true
+        },
+        "Kumwe\\Approval\\ApprovalQueryService": {
+            "factory": "Kumwe\\Approval\\Container\\ApprovalQueryServiceFactory",
+            "shared": true
+        }
     },
-    "Kumwe\\Approval\\ApprovalQueryService": {
-      "factory": "Kumwe\\Approval\\Container\\ApprovalQueryServiceFactory",
-      "shared": true
-    }
-  },
-  "host_ports": [
-    "Kumwe\\Approval\\ApprovalRepository",
-    "Kumwe\\Approval\\ApprovalQueryRepository",
-    "Kumwe\\Approval\\StepUpProofConsumer",
-    "Kumwe\\Access\\MembershipDirectory",
-    "Kumwe\\Access\\AuthorizationGateway",
-    "Kumwe\\Access\\ResourceSiteOwnershipWriter",
-    "Kumwe\\Audit\\Application\\AuditRecorder",
-    "Kumwe\\Transaction\\Contract\\TransactionManager",
-    "Psr\\Clock\\ClockInterface",
-    "Ramsey\\Uuid\\UuidFactoryInterface"
-  ]
+    "host_ports": [
+        "Kumwe\\Approval\\ApprovalRepository",
+        "Kumwe\\Approval\\ApprovalQueryRepository",
+        "Kumwe\\Approval\\StepUpProofConsumer",
+        "Kumwe\\Access\\MembershipDirectory",
+        "Kumwe\\Access\\AuthorizationGateway",
+        "Kumwe\\Access\\ResourceSiteOwnershipWriter",
+        "Kumwe\\Audit\\Application\\AuditRecorder",
+        "Kumwe\\Transaction\\Contract\\TransactionManager",
+        "Psr\\Clock\\ClockInterface",
+        "Ramsey\\Uuid\\UuidFactoryInterface"
+    ]
 }

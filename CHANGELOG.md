@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Validate approval projections, vote identity/uniqueness, quorum bounds, scope parents and expiry. Reject invalid UTF-8 and control characters in notes before replay or persistence side effects. Preserve the solvable published dependency graph.
+- Refresh extraction handoff and library-owned validation evidence; App adoption remains a separate task.
+
 ## 0.1.0
 
 - Extract portable approval contracts, values and services from App.
