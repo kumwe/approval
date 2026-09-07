@@ -268,4 +268,31 @@ final class ApprovalServiceTest extends TestCase
         catch (\RuntimeException $e) { self::assertSame('audit unavailable', $e->getMessage()); }
         self::assertFalse($this->inTransaction);
     }
+    public function testStaleMembershipCannotCreateRequest(): void
+    {
+        $membership = new MembershipContext(self::REQUEST,
+            \Kumwe\Context\Value\OrganizationContext::fromString('org'), null, 2, 3);
+        $context = $this->context(proof: false, membership: $membership);
+        $this->memberships->expects(self::once())->method('current')
+            ->with('maker', $context->site(), $membership, true)->willReturn(false);
+        $this->repository->expects(self::never())->method('rule');
+        $this->repository->expects(self::never())->method('insert');
+        $this->expectException(ApprovalDenied::class);
+        $this->service->request($context, $this->binding($context));
+    }
+
+    public function testDuplicateActorRefusalCannotAdvanceQuorumOrAudit(): void
+    {
+        $this->repository->method('lock')->willReturn($this->request());
+        $this->repository->method('approverEligible')->willReturn(true);
+        $this->currentRule();
+        $this->proofs->method('consume')->willReturn(self::REQUEST);
+        $this->repository->method('vote')->willThrowException(new ApprovalDenied());
+        $this->repository->expects(self::never())->method('approvalCount');
+        $this->repository->expects(self::never())->method('transition');
+        $this->audit->expects(self::never())->method('record');
+        $this->expectException(ApprovalDenied::class);
+        $this->service->approve($this->context('checker'), self::REQUEST);
+    }
+
 }

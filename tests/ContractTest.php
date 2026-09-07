@@ -97,4 +97,33 @@ final class ContractTest extends TestCase
         $container->get($service);
     }
     public static function exportedServices(): array { return [[ApprovalService::class],[ApprovalQueryService::class]]; }
+    #[DataProvider('invalidProjectionFields')]
+    public function testProjectionRejectsMalformedCountersAndEvidence(string $field, mixed $replacement): void
+    {
+        $args = [
+            'id' => self::UUID, 'ruleCode' => 'review', 'ruleVersion' => 1,
+            'approvalAction' => 'record.check', 'approverRoleId' => null, 'distinctActors' => true,
+            'requesterId' => 'maker', 'action' => 'record.update', 'resourceType' => 'record',
+            'resourceId' => 'record-1', 'resourceVersion' => 7, 'siteIdentifier' => 'site',
+            'organizationIdentifier' => null, 'workspaceIdentifier' => null,
+            'payloadDigest' => str_repeat('a', 64), 'bindingDigest' => str_repeat('b', 64),
+            'requiredQuorum' => 2, 'approvalCount' => 1, 'status' => ApprovalStatus::Pending,
+            'createdAt' => new DateTimeImmutable('2026-09-07T10:00:00Z'),
+            'expiresAt' => new DateTimeImmutable('2026-09-08T10:00:00Z'),
+            'version' => 1, 'canApprove' => true, 'canCancel' => false, 'canRevoke' => false, 'votes' => [],
+        ];
+        $valid = new \Kumwe\Approval\ApprovalRequestView(...$args);
+        self::assertSame([], $valid->votes);
+        self::assertFalse(property_exists($valid, 'contextFingerprint'));
+        $args[$field] = $replacement;
+        $this->expectException(InvalidArgumentException::class);
+        new \Kumwe\Approval\ApprovalRequestView(...$args);
+    }
+    public static function invalidProjectionFields(): array
+    {
+        return [['ruleVersion', 0], ['requiredQuorum', 0], ['resourceVersion', 0],
+            ['approvalCount', -1], ['approverRoleId', 'bad-role'], ['payloadDigest', 'bad'],
+            ['bindingDigest', 'bad'], ['votes', [new \stdClass()]]];
+    }
+
 }

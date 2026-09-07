@@ -222,7 +222,7 @@ consumerRun(
 );
 $installed = $consumer . '/vendor/kumwe/approval';
 consumerRun([PHP_BINARY, $root . '/tools/verify-archive.php', $installed], $workspace);
-foreach (['phpstan', 'squizlabs'] as $developmentVendor) {
+foreach (['phpstan', 'squizlabs', 'phpunit'] as $developmentVendor) {
     if (is_dir($consumer . '/vendor/' . $developmentVendor)) {
         consumerFail('the no-dev install still contains vendor/' . $developmentVendor . '.', $workspace);
     }
@@ -233,6 +233,7 @@ if (is_dir($installed . '/vendor')) {
 $autoload = $consumer . '/vendor/autoload.php';
 consumerRun([PHP_BINARY, $installed . '/resources/toolchain/autoload-smoke.php', $autoload], $workspace);
 consumerRun([PHP_BINARY, $installed . '/resources/toolchain/service-manager-smoke.php', $autoload], $workspace);
+consumerRun([PHP_BINARY, $installed . '/examples/typed-consumer.php', $autoload], $workspace);
 
 $classmap = require $consumer . '/vendor/composer/autoload_classmap.php';
 $symbols = is_array($manifest['symbols'] ?? null) ? $manifest['symbols'] : [];

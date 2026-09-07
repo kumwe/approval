@@ -41,7 +41,7 @@
     {
       "target": "src/ConfigProvider.php",
       "source": [],
-      "sha256": "93b577aee47710363f9cfa03ac61cbfeae9a1b31c5e20978bcbb22b05d713824"
+      "sha256": "5c9cdf306a6960f9cf318540232cdade42c0eb2139b3675127f7630681b0a849"
     },
     {
       "target": "src/ApprovalQueryService.php",

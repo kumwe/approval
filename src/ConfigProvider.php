@@ -12,7 +12,9 @@ final class ConfigProvider
 {
     /**
      * Describe actual injected services only.
-     * @return array{dependencies: array{factories: array<class-string, class-string>, shared: array<class-string, bool>}}
+     * @return array{dependencies: array{
+     *     factories: array<class-string, class-string>, shared: array<class-string, bool>
+     * }}
      * @since 0.1.0
      */
     public function __invoke(): array
