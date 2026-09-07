@@ -8,8 +8,8 @@
     "php": "^8.5",
     "ext-mbstring": "*",
     "kumwe/access-context": "0.1.0",
-    "kumwe/access-control": "0.1.0",
-    "kumwe/audit": "0.1.0",
+    "kumwe/access-control": "dev-agent/access-membership-di-completion",
+    "kumwe/audit": "dev-agent/extract-audit-v2",
     "kumwe/transaction": "0.1.0",
     "psr/clock": "^1.0",
     "psr/container": "^2.0",
@@ -22,9 +22,65 @@
     "phpstan/phpstan-strict-rules": "^2.0",
     "squizlabs/php_codesniffer": "^4.0"
   },
-  "autoload": {"psr-4": {"Kumwe\\Approval\\": "src/"}},
-  "autoload-dev": {"psr-4": {"Kumwe\\Approval\\Tests\\": "tests/"}},
-  "config": {"sort-packages": true},
-  "minimum-stability": "stable",
-  "prefer-stable": true
+  "autoload": {
+    "psr-4": {
+      "Kumwe\\Approval\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kumwe\\Approval\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/kumwe/access-control.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/kumwe/audit.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/kumwe/canonical-json.git"
+    }
+  ],
+  "scripts": {
+    "composer:validate": "composer validate --strict",
+    "lint": "php tools/lint.php",
+    "cs": "phpcs -q",
+    "cs:fix": "phpcbf",
+    "analyse": "phpstan analyse --no-progress --memory-limit=1G",
+    "test": "phpunit",
+    "architecture": "php tools/verify-architecture.php",
+    "api": "php tools/verify-public-api.php",
+    "api:record": "php tools/verify-public-api.php --write",
+    "security": "composer audit --abandoned=fail",
+    "check": [
+      "@composer:validate",
+      "@lint",
+      "@cs",
+      "@analyse",
+      "@test",
+      "@architecture",
+      "@api",
+      "@security",
+      "@autoload:smoke",
+      "@container:smoke",
+      "@examples",
+      "@clean-consumer",
+      "@release:integrity"
+    ],
+    "autoload:smoke": "php resources/toolchain/autoload-smoke.php",
+    "container:smoke": "php resources/toolchain/service-manager-smoke.php",
+    "examples": "php examples/typed-consumer.php",
+    "clean-consumer": "php tools/verify-clean-consumer.php",
+    "release:integrity": "bash tools/test-release-integrity.sh"
+  }
 }
