@@ -3,7 +3,7 @@
 Portable maker-checker requests and state transitions under `Kumwe\Approval`.
 An approval binds actor, action, resource identity/version, scope, authority, payload
 and exclusive expiry. Register ConfigProvider dependencies in a host Laminas
-ServiceManager and supply every port in resources/service-map/v1.json.
+ServiceManager and supply the host bindings in [the integration contract](docs/integration.md).
 
 Run composer install, composer check and composer examples with PHP 8.5.
 Published stable dependencies supply the required APIs. Publication requires the complete

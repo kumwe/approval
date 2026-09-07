@@ -13,3 +13,8 @@ Published baseline: [0.1.0](https://github.com/kumwe/approval/releases/tag/v0.1.
 Library tests own behavior, value boundaries, deterministic errors, public API and provider/factory conformance. App keeps persistence, final authorization, trusted context construction, deployment, concurrency and composed integration tests. No App source or test is deleted in Phase 1.
 
 After human review and publication, verify the final tagged source/artifact/manifests and a no-dev authoritative consumer. Reconcile current App changes against the recorded extraction baseline before replacing namespaces or deleting duplicate portable tests. Preserve historical release records and all genuine remaining adoption gates.
+
+The reviewed API, capabilities, service map and complete v2 handoff pass the read-only
+App package parser at commit `24ecf956423c18933e824b43cea1bfb9127a79a9`.
+Package-owned manifest checks guard exported symbols, documentation and release identity.
+The consumer check does not constitute independent verification of a future release.

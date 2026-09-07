@@ -2,11 +2,25 @@
     "schema": "kumwe-package-capabilities/v1",
     "package": "kumwe/approval",
     "release": "0.1.1",
+    "namespace": "Kumwe\\Approval\\",
+    "responsibility": "Portable maker-checker bindings, approval state transitions, query values and transaction-bounded services.",
+    "non_responsibilities": [
+        "Host authentication and final authorization",
+        "Database repositories, locking, persistence and deployment",
+        "Cross-package transactions, workflows and delivery"
+    ],
     "capabilities": [
         {
             "id": "approval.binding",
             "symbols": [
                 "Kumwe\\Approval\\ApprovalBinding"
+            ],
+            "title": "Approval binding",
+            "description": "Bind maker, action, resource version, payload and explicit authority context.",
+            "documentation": [
+                "docs/public-api.md",
+                "docs/architecture.md",
+                "docs/integration.md"
             ]
         },
         {
@@ -14,6 +28,13 @@
             "symbols": [
                 "Kumwe\\Approval\\ApprovalService",
                 "Kumwe\\Approval\\ApprovalStatus"
+            ],
+            "title": "Approval workflow",
+            "description": "Apply portable request, approve, reject, cancel, revoke, expire and consume transitions through host ports.",
+            "documentation": [
+                "docs/public-api.md",
+                "docs/architecture.md",
+                "docs/integration.md"
             ]
         },
         {
@@ -21,7 +42,16 @@
             "symbols": [
                 "Kumwe\\Approval\\ApprovalQueryService",
                 "Kumwe\\Approval\\ApprovalRequestView"
+            ],
+            "title": "Approval query",
+            "description": "Expose bounded non-enumerating scoped request projections through host visibility ports.",
+            "documentation": [
+                "docs/public-api.md",
+                "docs/architecture.md",
+                "docs/integration.md"
             ]
         }
-    ]
+    ],
+    "native_requirements": null,
+    "deprecations": []
 }

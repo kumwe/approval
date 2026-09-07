@@ -22,7 +22,7 @@ source:
       - "src/BusinessSecurity/Application/Approval/ApprovalDenied.php"
       - "src/BusinessSecurity/Application/Approval/ApprovalRequest.php"
     old_namespace_roots:
-      - "Kumwe\\App\\BusinessSecurity\\Application\\Approval"
+      - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\"
     capability_index_sha256: null
   semantic_inputs: []
   examined_dependencies:
@@ -58,10 +58,10 @@ ownership:
       sha256: "7dc1e0f6b834af185c4e8fc1ca535d151cf98c1c1dd9d00322a436ac6e954510"
     -
       path: "resources/capabilities/v1.json"
-      sha256: "94019814f03c618cddf32b45cbc90cce9aeeead655ba84991d607e47bc4f9c36"
+      sha256: "197ca1d89211a46d56b46b2caeaf0881ca41e296b1b038774654bbc7fa1a01d4"
     -
       path: "resources/service-map/v1.json"
-      sha256: "5c959fbbb41843f6801177f22f0e4b3ac1221cf4fa79b4f8a8d673e0230b70cd"
+      sha256: "d9177285b63019f7058f30ad5d47b23f259520c480c01bda5161417aa6950852"
   intentionally_excluded:
     - "MembershipDirectory belongs to Access"
     - "App persistence, authorization authority, protected workflows and integration tests"
@@ -300,45 +300,6 @@ framework_php:
       serialization_contract: "Documented scalar/value projections; native object serialization is not a durable wire or authority contract."
       compatibility: "Existing names/signatures retained; malformed projection and note inputs are now refused."
     -
-      old_fqcn: null
-      new_fqcn: "Kumwe\\Approval\\ConfigProvider"
-      source_path: null
-      target_path: "src/ConfigProvider.php"
-      kind: "class"
-      public_methods:
-        - "__invoke"
-      public_properties: []
-      public_constants: []
-      exceptions: []
-      serialization_contract: "Documented scalar/value projections; native object serialization is not a durable wire or authority contract."
-      compatibility: "Existing names/signatures retained; malformed projection and note inputs are now refused."
-    -
-      old_fqcn: null
-      new_fqcn: "Kumwe\\Approval\\Container\\ApprovalQueryServiceFactory"
-      source_path: null
-      target_path: "src/Container/ApprovalQueryServiceFactory.php"
-      kind: "class"
-      public_methods:
-        - "__invoke"
-      public_properties: []
-      public_constants: []
-      exceptions: []
-      serialization_contract: "Documented scalar/value projections; native object serialization is not a durable wire or authority contract."
-      compatibility: "Existing names/signatures retained; malformed projection and note inputs are now refused."
-    -
-      old_fqcn: null
-      new_fqcn: "Kumwe\\Approval\\Container\\ApprovalServiceFactory"
-      source_path: null
-      target_path: "src/Container/ApprovalServiceFactory.php"
-      kind: "class"
-      public_methods:
-        - "__invoke"
-      public_properties: []
-      public_constants: []
-      exceptions: []
-      serialization_contract: "Documented scalar/value projections; native object serialization is not a durable wire or authority contract."
-      compatibility: "Existing names/signatures retained; malformed projection and note inputs are now refused."
-    -
       old_fqcn: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\StepUpProofConsumer"
       new_fqcn: "Kumwe\\Approval\\StepUpProofConsumer"
       source_path: "src/BusinessSecurity/Application/Approval/StepUpProofConsumer.php"
@@ -396,12 +357,8 @@ framework_php:
       - "Kumwe\\Approval\\Container\\ApprovalQueryServiceFactory"
     aliases: []
     service_lifetimes:
-      -
-        service: "Kumwe\\Approval\\ApprovalService"
-        lifetime: "shared; all operation context is explicit"
-      -
-        service: "Kumwe\\Approval\\ApprovalQueryService"
-        lifetime: "shared; all operation context is explicit"
+      - "Kumwe\\Approval\\ApprovalService: shared; all operation context is explicit"
+      - "Kumwe\\Approval\\ApprovalQueryService: shared; all operation context is explicit"
     configuration_keys: []
     provider_absence_reason: null
 native_cpp: null
@@ -457,42 +414,18 @@ next_task:
   consumer_repository: "kumwe/app"
   dependency_or_native_change: "Keep the current coherent Context/Access/Audit/Transaction 0.1.0 graph until compatible published Access and Audit successors exist; then update all related exact pins together using Composer."
   namespace_or_api_replacements:
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalBinding"
-      to: "Kumwe\\Approval\\ApprovalBinding"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalDenied"
-      to: "Kumwe\\Approval\\ApprovalDenied"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalQueryRepository"
-      to: "Kumwe\\Approval\\ApprovalQueryRepository"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalQueryService"
-      to: "Kumwe\\Approval\\ApprovalQueryService"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRepository"
-      to: "Kumwe\\Approval\\ApprovalRepository"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRequest"
-      to: "Kumwe\\Approval\\ApprovalRequest"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRequestView"
-      to: "Kumwe\\Approval\\ApprovalRequestView"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRule"
-      to: "Kumwe\\Approval\\ApprovalRule"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalService"
-      to: "Kumwe\\Approval\\ApprovalService"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalStatus"
-      to: "Kumwe\\Approval\\ApprovalStatus"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalVoteView"
-      to: "Kumwe\\Approval\\ApprovalVoteView"
-    -
-      from: "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\StepUpProofConsumer"
-      to: "Kumwe\\Approval\\StepUpProofConsumer"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalBinding => Kumwe\\Approval\\ApprovalBinding"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalDenied => Kumwe\\Approval\\ApprovalDenied"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalQueryRepository => Kumwe\\Approval\\ApprovalQueryRepository"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalQueryService => Kumwe\\Approval\\ApprovalQueryService"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRepository => Kumwe\\Approval\\ApprovalRepository"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRequest => Kumwe\\Approval\\ApprovalRequest"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRequestView => Kumwe\\Approval\\ApprovalRequestView"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalRule => Kumwe\\Approval\\ApprovalRule"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalService => Kumwe\\Approval\\ApprovalService"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalStatus => Kumwe\\Approval\\ApprovalStatus"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalVoteView => Kumwe\\Approval\\ApprovalVoteView"
+    - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\StepUpProofConsumer => Kumwe\\Approval\\StepUpProofConsumer"
   files_to_update:
     - "composer.json"
     - "composer.lock"
@@ -540,9 +473,9 @@ concurrency:
     - "App composer.lock"
     - "App provider list and approval host adapters"
   related_migrations:
-    - "Access Control"
-    - "Audit"
-    - "Access Context"
+    - "KUMWE-MIG-2026-004"
+    - "KUMWE-MIG-2026-009"
+    - "KUMWE-MIG-2026-021"
   ownership_conflicts: []
   integration_train: null
   resolution_rule: "semantic-preservation"
@@ -561,7 +494,7 @@ blockers:
   - "Latest Context cannot be selected in Approval until compatible Access and Audit successors are actually published."
 ---
 
-# Approval implementation handoff
+## Migration/implementation summary
 
 The original 0.1.0 package is published. [PR #4](https://github.com/kumwe/approval/pull/4) is the boundary-validation successor; publication and independent release verification are separate observations.
 
@@ -573,7 +506,7 @@ Fifteen exported types own the portable maker-checker workflow. Protected-action
 
 MembershipDirectory stays owned by Access. The service consumes Access, Audit, Transaction, Context, Clock and UUID contracts directly. It never copies their implementations.
 
-## Consumer inventory and drift check
+## Consumer inventory
 
 docs/source-map.json records the source baseline; docs/consumer-inventory.json lists current source/test/configuration users from that same baseline. Reconcile every changed App source before adoption.
 
@@ -585,6 +518,11 @@ Package tests own binding fields, role/separation checks, policy freshness, repl
 
 Require the complete package gate and independently verify the final release. Preserve the coherent published dependency graph until compatible Access and Audit successors exist, then update all exact Context/Access/Audit pins together using Composer. No App runtime switch occurs in this PR.
 
-## Validation recipe
+## Drift check
+
+Reconcile mapped source and tests against the recorded App baseline and current App before any adoption.
+Newer portable behavior must move upstream first; preserve App authority, persistence and integration tests.
+
+## Validation recipe and observed local results
 
 Run composer check and release automation regressions; prove the no-dev classmap-authoritative consumer and real Laminas service construction. Exact final tested heads, archive digests and external release observations are recorded outside the tested tree.
