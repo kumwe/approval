@@ -41,27 +41,27 @@ final class ApprovalServiceTest extends TestCase
     private AuthorizationGateway $authorization;
     private DateTimeImmutable $now;
     private bool $inTransaction = false;
-    private ApprovalService $service;
+    private TransactionManager $transactions;
+    private ClockInterface $clock;
 
     protected function setUp(): void
     {
         $this->now = new DateTimeImmutable('2026-09-07T10:00:00Z');
-        $this->repository = $this->createMock(ApprovalRepository::class);
-        $this->proofs = $this->createMock(StepUpProofConsumer::class);
-        $this->memberships = $this->createMock(MembershipDirectory::class);
-        $this->audit = $this->createMock(AuditRecorder::class);
-        $this->ownership = $this->createMock(ResourceSiteOwnershipWriter::class);
-        $this->authorization = $this->createMock(AuthorizationGateway::class);
-        $transactions = $this->createStub(TransactionManager::class);
+        $this->repository = $this->createStub(ApprovalRepository::class);
+        $this->proofs = $this->createStub(StepUpProofConsumer::class);
+        $this->memberships = $this->createStub(MembershipDirectory::class);
+        $this->audit = $this->createStub(AuditRecorder::class);
+        $this->ownership = $this->createStub(ResourceSiteOwnershipWriter::class);
+        $this->authorization = $this->createStub(AuthorizationGateway::class);
+        $transactions = $this->transactions = $this->createStub(TransactionManager::class);
         $transactions->method('transactional')->willReturnCallback(function (callable $operation): mixed {
             self::assertFalse($this->inTransaction);
             $this->inTransaction = true;
             try { return $operation(); } finally { $this->inTransaction = false; }
         });
-        $clock = $this->createStub(ClockInterface::class);
+        $clock = $this->clock = $this->createStub(ClockInterface::class);
         $clock->method('now')->willReturn($this->now);
-        $this->service = new ApprovalService($this->repository, $this->proofs, $this->memberships,
-            $transactions, $this->authorization, $this->ownership, $this->audit, $clock, new UuidFactory());
+
     }
 
     private function context(string $actor = 'maker', bool $proof = true, string $site = 'default',
@@ -103,72 +103,72 @@ final class ApprovalServiceTest extends TestCase
 
     private function currentRule(): void
     {
-        $this->repository->expects(self::once())->method('rule')->with(self::isInstanceOf(ApprovalBinding::class), true)
+        $this->repository()->expects(self::once())->method('rule')->with(self::isInstanceOf(ApprovalBinding::class), true)
             ->willReturnCallback(function (): ApprovalRule { self::assertTrue($this->inTransaction); return $this->rule(); });
     }
 
     public function testRequestLocksRuleAndWritesOwnershipAndAuditInsideTransaction(): void
     {
         $context = $this->context(); $binding = $this->binding($context); $this->currentRule();
-        $this->repository->method('requesterEligible')->willReturn(true);
-        $this->repository->expects(self::once())->method('insert')->willReturnCallback(function (
+        $this->repository()->expects(self::any())->method('requesterEligible')->willReturn(true);
+        $this->repository()->expects(self::once())->method('insert')->willReturnCallback(function (
             string $id, ApprovalRule $rule, ApprovalBinding $actual, DateTimeImmutable $expires,
         ) use ($binding): void { self::assertTrue($this->inTransaction); self::assertSame($binding, $actual);
             self::assertEquals($this->now->modify('+1 day'), $expires); });
-        $this->ownership->expects(self::once())->method('record')->willReturnCallback(function (): void {
+        $this->ownership()->expects(self::once())->method('record')->willReturnCallback(function (): void {
             self::assertTrue($this->inTransaction);
         });
-        $this->audit->expects(self::once())->method('record')->willReturnCallback(function (): void {
+        $this->audit()->expects(self::once())->method('record')->willReturnCallback(function (): void {
             self::assertTrue($this->inTransaction);
         });
-        self::assertNotNull($this->service->request($context, $binding));
+        self::assertNotNull($this->service()->request($context, $binding));
     }
 
     public function testNoRuleHasNoWriteSideEffects(): void
     {
-        $this->repository->expects(self::once())->method('rule')->with(self::anything(), true)->willReturn(null);
-        $this->repository->expects(self::never())->method('insert'); $this->audit->expects(self::never())->method('record');
-        self::assertNull($this->service->request($this->context(), $this->binding()));
+        $this->repository()->expects(self::once())->method('rule')->with(self::anything(), true)->willReturn(null);
+        $this->repository()->expects(self::never())->method('insert'); $this->audit()->expects(self::never())->method('record');
+        self::assertNull($this->service()->request($this->context(), $this->binding()));
     }
 
     #[DataProvider('invalidLifetimes')]
     public function testInvalidLifetimeRefusedBeforeInsert(string $interval): void
     {
-        $this->currentRule(); $this->repository->method('requesterEligible')->willReturn(true);
-        $this->repository->expects(self::never())->method('insert'); $this->expectException(\InvalidArgumentException::class);
-        $this->service->request($this->context(), $this->binding(), new DateInterval($interval));
+        $this->currentRule(); $this->repository()->expects(self::any())->method('requesterEligible')->willReturn(true);
+        $this->repository()->expects(self::never())->method('insert'); $this->expectException(\InvalidArgumentException::class);
+        $this->service()->request($this->context(), $this->binding(), new DateInterval($interval));
     }
     public static function invalidLifetimes(): array { return [['PT0S'], ['P8D']]; }
 
     #[DataProvider('quorumCounts')]
     public function testApprovePreservesFrozenCapabilityAndAdvancesOnlyAtQuorum(int $count, ApprovalStatus $status): void
     {
-        $this->repository->method('lock')->willReturn($this->request());
-        $this->repository->method('approverEligible')->willReturn(true); $this->currentRule();
-        $this->proofs->expects(self::once())->method('consume')->willReturn(self::REQUEST);
-        $this->repository->expects(self::once())->method('vote')->with(self::isString(), self::REQUEST,
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request());
+        $this->repository()->expects(self::any())->method('approverEligible')->willReturn(true); $this->currentRule();
+        $this->proofs()->expects(self::once())->method('consume')->willReturn(self::REQUEST);
+        $this->repository()->expects(self::once())->method('vote')->with(self::isString(), self::REQUEST,
             'checker', 'approve', 'Reviewed', self::isString(), self::REQUEST, $this->now);
-        $this->repository->method('approvalCount')->willReturn($count);
-        $this->repository->expects($status === ApprovalStatus::Approved ? self::once() : self::never())
+        $this->repository()->expects(self::any())->method('approvalCount')->willReturn($count);
+        $this->repository()->expects($status === ApprovalStatus::Approved ? self::once() : self::never())
             ->method('transition')->with(self::REQUEST, ApprovalStatus::Pending, $status, 3, $this->now);
         $checked = [];
-        $this->authorization->method('assertAllowed')->willReturnCallback(static function ($context, $capability) use (&$checked): void {
+        $this->authorization()->expects(self::exactly(2))->method('assertAllowed')->willReturnCallback(static function ($context, $capability) use (&$checked): void {
             $checked[] = $capability->value();
         });
-        self::assertSame($status, $this->service->approve($this->context('checker'), self::REQUEST, '  Reviewed  '));
+        self::assertSame($status, $this->service()->approve($this->context('checker'), self::REQUEST, '  Reviewed  '));
         self::assertSame(['business.approval.approve', 'vendor.invoice.check'], $checked);
     }
     public static function quorumCounts(): array { return [[1, ApprovalStatus::Pending], [2, ApprovalStatus::Approved]]; }
 
     public function testRejectEndsPendingRequestImmediately(): void
     {
-        $this->repository->method('lock')->willReturn($this->request());
-        $this->repository->method('approverEligible')->willReturn(true); $this->currentRule();
-        $this->proofs->method('consume')->willReturn(self::REQUEST);
-        $this->repository->expects(self::never())->method('approvalCount');
-        $this->repository->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Pending,
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request());
+        $this->repository()->expects(self::any())->method('approverEligible')->willReturn(true); $this->currentRule();
+        $this->proofs()->expects(self::once())->method('consume')->willReturn(self::REQUEST);
+        $this->repository()->expects(self::never())->method('approvalCount');
+        $this->repository()->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Pending,
             ApprovalStatus::Rejected, 3, $this->now);
-        self::assertSame(ApprovalStatus::Rejected, $this->service->reject($this->context('checker'), self::REQUEST));
+        self::assertSame(ApprovalStatus::Rejected, $this->service()->reject($this->context('checker'), self::REQUEST));
     }
 
     #[DataProvider('deniedDecisions')]
@@ -176,14 +176,14 @@ final class ApprovalServiceTest extends TestCase
     {
         $context = $this->context($failure === 'maker' ? 'maker' : 'checker', $failure !== 'proof',
             $failure === 'site' ? 'other' : 'default');
-        $this->repository->method('lock')->willReturn($failure === 'missing' ? null : $this->request(
+        $this->repository()->expects(self::any())->method('lock')->willReturn($failure === 'missing' ? null : $this->request(
             $failure === 'terminal' ? ApprovalStatus::Approved : ApprovalStatus::Pending,
             expiry: $failure === 'expired' ? $this->now : null));
-        $this->repository->method('approverEligible')->willReturn($failure !== 'eligibility');
-        $this->repository->method('rule')->willReturn($failure === 'policy' ? $this->rule(version: 2) : $this->rule());
-        $this->proofs->expects(self::never())->method('consume'); $this->repository->expects(self::never())->method('vote');
+        $this->repository()->expects(self::any())->method('approverEligible')->willReturn($failure !== 'eligibility');
+        $this->repository()->expects(self::any())->method('rule')->willReturn($failure === 'policy' ? $this->rule(version: 2) : $this->rule());
+        $this->proofs()->expects(self::never())->method('consume'); $this->repository()->expects(self::never())->method('vote');
         $this->expectException(ApprovalDenied::class);
-        $this->service->approve($context, self::REQUEST, $failure === 'reason' ? ' ' : null);
+        $this->service()->approve($context, self::REQUEST, $failure === 'reason' ? ' ' : null);
     }
     public static function deniedDecisions(): array
     {
@@ -193,13 +193,13 @@ final class ApprovalServiceTest extends TestCase
     #[DataProvider('consumeFailures')]
     public function testConsumptionRefusesChangedBindingPolicyExpiryAndReplay(string $failure): void
     {
-        $this->repository->method('lock')->willReturn($this->request(
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request(
             $failure === 'replay' ? ApprovalStatus::Consumed : ApprovalStatus::Approved,
             expiry: $failure === 'expiry' ? $this->now : null));
-        $this->repository->method('rule')->willReturn($failure === 'policy' ? $this->rule(version: 2) : $this->rule());
-        $this->proofs->expects(self::never())->method('consume'); $this->repository->expects(self::never())->method('transition');
+        $this->repository()->expects(self::any())->method('rule')->willReturn($failure === 'policy' ? $this->rule(version: 2) : $this->rule());
+        $this->proofs()->expects(self::never())->method('consume'); $this->repository()->expects(self::never())->method('transition');
         $this->expectException(ApprovalDenied::class);
-        $this->service->consume($this->context($failure === 'actor' ? 'stranger' : 'maker'), self::REQUEST,
+        $this->service()->consume($this->context($failure === 'actor' ? 'stranger' : 'maker'), self::REQUEST,
             $this->binding(version: $failure === 'version' ? 8 : 7, payload: $failure === 'payload' ? 'b' : 'a'));
     }
     public static function consumeFailures(): array
@@ -209,62 +209,62 @@ final class ApprovalServiceTest extends TestCase
 
     public function testConsumeTransitionsExactVersionAndAuditsInTransaction(): void
     {
-        $this->repository->method('lock')->willReturn($this->request(ApprovalStatus::Approved)); $this->currentRule();
-        $this->proofs->expects(self::once())->method('consume')->willReturn(self::REQUEST);
-        $this->repository->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Approved,
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request(ApprovalStatus::Approved)); $this->currentRule();
+        $this->proofs()->expects(self::once())->method('consume')->willReturn(self::REQUEST);
+        $this->repository()->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Approved,
             ApprovalStatus::Consumed, 3, $this->now);
-        $this->audit->expects(self::once())->method('record')->willReturnCallback(function (): void { self::assertTrue($this->inTransaction); });
-        $this->service->consume($this->context(), self::REQUEST, $this->binding());
+        $this->audit()->expects(self::once())->method('record')->willReturnCallback(function (): void { self::assertTrue($this->inTransaction); });
+        $this->service()->consume($this->context(), self::REQUEST, $this->binding());
     }
 
     public function testRequesterCancelsWithoutStepUp(): void
     {
         $context = $this->context(proof: false);
-        $this->repository->method('lock')->willReturn($this->request(binding: $this->binding($context)));
-        $this->proofs->expects(self::never())->method('consume');
-        $this->repository->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Pending,
-            ApprovalStatus::Cancelled, 3, $this->now); $this->service->cancel($context, self::REQUEST);
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request(binding: $this->binding($context)));
+        $this->proofs()->expects(self::never())->method('consume');
+        $this->repository()->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Pending,
+            ApprovalStatus::Cancelled, 3, $this->now); $this->service()->cancel($context, self::REQUEST);
     }
 
     public function testExpiredRequestCannotBeCancelled(): void
     {
-        $this->repository->method('lock')->willReturn($this->request(expiry: $this->now));
-        $this->repository->expects(self::never())->method('transition');
-        $this->expectException(ApprovalDenied::class); $this->service->cancel($this->context(), self::REQUEST);
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request(expiry: $this->now));
+        $this->repository()->expects(self::never())->method('transition');
+        $this->expectException(ApprovalDenied::class); $this->service()->cancel($this->context(), self::REQUEST);
     }
 
     #[DataProvider('expirableStates')]
     public function testExpiryIsExclusiveAndMaterializedForBothLiveStates(ApprovalStatus $state): void
     {
-        $this->repository->method('lock')->willReturn($this->request($state, expiry: $this->now));
-        $this->repository->expects(self::once())->method('transition')->with(self::REQUEST, $state,
-            ApprovalStatus::Expired, 3, $this->now); $this->proofs->expects(self::never())->method('consume');
-        $this->service->expire($this->context(), self::REQUEST);
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request($state, expiry: $this->now));
+        $this->repository()->expects(self::once())->method('transition')->with(self::REQUEST, $state,
+            ApprovalStatus::Expired, 3, $this->now); $this->proofs()->expects(self::never())->method('consume');
+        $this->service()->expire($this->context(), self::REQUEST);
     }
     public static function expirableStates(): array { return [[ApprovalStatus::Pending], [ApprovalStatus::Approved]]; }
 
     public function testEarlyExpiryRefused(): void
     {
-        $this->repository->method('lock')->willReturn($this->request());
-        $this->repository->expects(self::never())->method('transition');
-        $this->expectException(ApprovalDenied::class); $this->service->expire($this->context(), self::REQUEST);
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request());
+        $this->repository()->expects(self::never())->method('transition');
+        $this->expectException(ApprovalDenied::class); $this->service()->expire($this->context(), self::REQUEST);
     }
 
     public function testManagerRevokesWithSingleUseProof(): void
     {
-        $this->repository->method('lock')->willReturn($this->request(ApprovalStatus::Approved));
-        $this->proofs->expects(self::once())->method('consume')->with(self::anything(), self::anything(),
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request(ApprovalStatus::Approved));
+        $this->proofs()->expects(self::once())->method('consume')->with(self::anything(), self::anything(),
             'business.approval.revoke', $this->now)->willReturn(self::REQUEST);
-        $this->repository->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Approved,
-            ApprovalStatus::Revoked, 3, $this->now); $this->service->revoke($this->context('manager'), self::REQUEST);
+        $this->repository()->expects(self::once())->method('transition')->with(self::REQUEST, ApprovalStatus::Approved,
+            ApprovalStatus::Revoked, 3, $this->now); $this->service()->revoke($this->context('manager'), self::REQUEST);
     }
 
     public function testAuditFailurePropagatesThroughTransaction(): void
     {
         $context = $this->context(proof: false);
-        $this->repository->method('lock')->willReturn($this->request(binding: $this->binding($context)));
-        $this->audit->method('record')->willThrowException(new \RuntimeException('audit unavailable'));
-        try { $this->service->cancel($context, self::REQUEST); self::fail('Expected failure'); }
+        $this->repository()->expects(self::once())->method('lock')->willReturn($this->request(binding: $this->binding($context)));
+        $this->audit()->expects(self::once())->method('record')->willThrowException(new \RuntimeException('audit unavailable'));
+        try { $this->service()->cancel($context, self::REQUEST); self::fail('Expected failure'); }
         catch (\RuntimeException $e) { self::assertSame('audit unavailable', $e->getMessage()); }
         self::assertFalse($this->inTransaction);
     }
@@ -273,26 +273,80 @@ final class ApprovalServiceTest extends TestCase
         $membership = new MembershipContext(self::REQUEST,
             \Kumwe\Context\Value\OrganizationContext::fromString('org'), null, 2, 3);
         $context = $this->context(proof: false, membership: $membership);
-        $this->memberships->expects(self::once())->method('current')
+        $this->memberships()->expects(self::once())->method('current')
             ->with('maker', $context->site(), $membership, true)->willReturn(false);
-        $this->repository->expects(self::never())->method('rule');
-        $this->repository->expects(self::never())->method('insert');
+        $this->repository()->expects(self::never())->method('rule');
+        $this->repository()->expects(self::never())->method('insert');
         $this->expectException(ApprovalDenied::class);
-        $this->service->request($context, $this->binding($context));
+        $this->service()->request($context, $this->binding($context));
     }
 
     public function testDuplicateActorRefusalCannotAdvanceQuorumOrAudit(): void
     {
-        $this->repository->method('lock')->willReturn($this->request());
-        $this->repository->method('approverEligible')->willReturn(true);
+        $this->repository()->expects(self::any())->method('lock')->willReturn($this->request());
+        $this->repository()->expects(self::any())->method('approverEligible')->willReturn(true);
         $this->currentRule();
-        $this->proofs->method('consume')->willReturn(self::REQUEST);
-        $this->repository->method('vote')->willThrowException(new ApprovalDenied());
-        $this->repository->expects(self::never())->method('approvalCount');
-        $this->repository->expects(self::never())->method('transition');
-        $this->audit->expects(self::never())->method('record');
+        $this->proofs()->expects(self::once())->method('consume')->willReturn(self::REQUEST);
+        $this->repository()->expects(self::any())->method('vote')->willThrowException(new ApprovalDenied());
+        $this->repository()->expects(self::never())->method('approvalCount');
+        $this->repository()->expects(self::never())->method('transition');
+        $this->audit()->expects(self::never())->method('record');
         $this->expectException(ApprovalDenied::class);
-        $this->service->approve($this->context('checker'), self::REQUEST);
+        $this->service()->approve($this->context('checker'), self::REQUEST);
+    }
+
+    private function service(): ApprovalService
+    {
+        return new ApprovalService($this->repository, $this->proofs, $this->memberships,
+            $this->transactions, $this->authorization, $this->ownership, $this->audit, $this->clock, new UuidFactory());
+    }
+
+    private function repository(): ApprovalRepository&\PHPUnit\Framework\MockObject\MockObject
+    {
+        if (!$this->repository instanceof \PHPUnit\Framework\MockObject\MockObject) {
+            $this->repository = $this->createMock(ApprovalRepository::class);
+        }
+        return $this->repository;
+    }
+
+    private function proofs(): StepUpProofConsumer&\PHPUnit\Framework\MockObject\MockObject
+    {
+        if (!$this->proofs instanceof \PHPUnit\Framework\MockObject\MockObject) {
+            $this->proofs = $this->createMock(StepUpProofConsumer::class);
+        }
+        return $this->proofs;
+    }
+
+    private function memberships(): MembershipDirectory&\PHPUnit\Framework\MockObject\MockObject
+    {
+        if (!$this->memberships instanceof \PHPUnit\Framework\MockObject\MockObject) {
+            $this->memberships = $this->createMock(MembershipDirectory::class);
+        }
+        return $this->memberships;
+    }
+
+    private function audit(): AuditRecorder&\PHPUnit\Framework\MockObject\MockObject
+    {
+        if (!$this->audit instanceof \PHPUnit\Framework\MockObject\MockObject) {
+            $this->audit = $this->createMock(AuditRecorder::class);
+        }
+        return $this->audit;
+    }
+
+    private function ownership(): ResourceSiteOwnershipWriter&\PHPUnit\Framework\MockObject\MockObject
+    {
+        if (!$this->ownership instanceof \PHPUnit\Framework\MockObject\MockObject) {
+            $this->ownership = $this->createMock(ResourceSiteOwnershipWriter::class);
+        }
+        return $this->ownership;
+    }
+
+    private function authorization(): AuthorizationGateway&\PHPUnit\Framework\MockObject\MockObject
+    {
+        if (!$this->authorization instanceof \PHPUnit\Framework\MockObject\MockObject) {
+            $this->authorization = $this->createMock(AuthorizationGateway::class);
+        }
+        return $this->authorization;
     }
 
 }
