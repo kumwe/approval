@@ -7,9 +7,9 @@
   "require": {
     "php": "^8.5",
     "ext-mbstring": "*",
-    "kumwe/access-context": "0.1.0",
-    "kumwe/access-control": "0.1.0",
-    "kumwe/audit": "0.1.0",
+    "kumwe/access-context": "0.1.2",
+    "kumwe/access-control": "0.1.2",
+    "kumwe/audit": "0.1.2",
     "kumwe/transaction": "0.1.2",
     "psr/clock": "^1.0",
     "psr/container": "^2.0",
@@ -64,6 +64,7 @@
     "security": "composer audit --abandoned=fail",
     "check": [
       "@composer:validate",
+      "@dependencies:check",
       "@lint",
       "@cs",
       "@analyse",
@@ -83,6 +84,10 @@
     "examples": "php examples/typed-consumer.php",
     "clean-consumer": "php tools/verify-clean-consumer.php",
     "release:integrity": "bash tools/test-release-integrity.sh",
-    "manifests": "php tools/verify-governed-manifests.php"
+    "manifests": "php tools/verify-governed-manifests.php",
+    "dependencies:check": [
+      "bash tools/check-dependency-readiness.sh",
+      "bash tools/test-dependency-readiness.sh"
+    ]
   }
 }

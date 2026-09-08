@@ -37,7 +37,7 @@ target:
   repository: "https://github.com/kumwe/approval"
   artifact_identity: "kumwe/approval"
   canonical_namespace_or_abi: "Kumwe\\Approval"
-  branch: "codex/extraction-readiness-20260907"
+  branch: codex/integration-readiness-20260908
   pull_request: "https://github.com/kumwe/approval/pull/4"
 ownership:
   responsibility: "Portable maker-checker bindings, approval state transitions, request/query values and transaction-bounded services through explicit host ports."
@@ -55,13 +55,13 @@ ownership:
   public_manifests:
     -
       path: "resources/public-api/v1.json"
-      sha256: "7dc1e0f6b834af185c4e8fc1ca535d151cf98c1c1dd9d00322a436ac6e954510"
+      sha256: "5985b2105f0ecafd9804084a894309175236e8f182c4ad47c892c97dbe72c48d"
     -
       path: "resources/capabilities/v1.json"
-      sha256: "197ca1d89211a46d56b46b2caeaf0881ca41e296b1b038774654bbc7fa1a01d4"
+      sha256: "355b1a9fc67458ba5fbc2758d06415a72dbaf19bc50b7bdee09fca5812de4109"
     -
       path: "resources/service-map/v1.json"
-      sha256: "4416b1dea4d865d5c1e2e348167b03eb0de5c321c4edb004d60121200943a6e3"
+      sha256: "da068d341df795d85028636ad16414a7086de63f9ece5e3551ed39a6907fdc25"
   intentionally_excluded:
     - "MembershipDirectory belongs to Access"
     - "App persistence, authorization authority, protected workflows and integration tests"
@@ -393,7 +393,7 @@ documentation:
   integration_or_consumer: "docs/integration.md"
   examples:
     - "examples/typed-consumer.php"
-  changelog_record: "CHANGELOG.md / 0.1.1"
+  changelog_record: "CHANGELOG.md ## 0.1.2"
 release_expectations:
   version_policy: "Exact stable pre-1.0 pins; preserve existing releases and independently verify the successor before App adoption."
   expected_artifact_types:
@@ -516,7 +516,17 @@ Package tests own binding fields, role/separation checks, policy freshness, repl
 
 ## Next-task execution notes
 
-Require the complete package gate and independently verify the final release. Preserve the coherent published dependency graph until compatible Access and Audit successors exist, then update all exact Context/Access/Audit pins together using Composer. No App runtime switch occurs in this PR.
+The selected production dependency tuple is:
+
+- kumwe/access-context 0.1.2
+- kumwe/access-control 0.1.2
+- kumwe/audit 0.1.2
+- kumwe/transaction 0.1.2
+
+Published dependency identities and independent archive consumers must be verified before adoption.
+The package gate enforces agreement between Composer constraints and the dependency evidence coordinates.
+
+Require the complete package gate and independently verify the final release. The selected Context, Access and Audit 0.1.2 releases are the compatible published dependency graph. No App runtime switch occurs in this PR.
 
 ## Drift check
 

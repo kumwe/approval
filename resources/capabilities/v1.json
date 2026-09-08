@@ -1,7 +1,7 @@
 {
     "schema": "kumwe-package-capabilities/v1",
     "package": "kumwe/approval",
-    "release": "0.1.1",
+    "release": "0.1.2",
     "namespace": "Kumwe\\Approval\\",
     "responsibility": "Portable maker-checker bindings, approval state transitions, query values and transaction-bounded services.",
     "non_responsibilities": [

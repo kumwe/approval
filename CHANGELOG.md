@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Align exact production requirements with the coordinated, validated extraction package graph.
+- Reject stale or incomplete dependency evidence coordinates in the complete package gate.
+- Refresh governed release manifests and handoff metadata while preserving package behavior and host boundaries.
+
 ## 0.1.1
 
 - Select published Transaction 0.1.2 without changing the coherent Access/Audit dependency tuple.
