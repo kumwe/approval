@@ -38,7 +38,7 @@ target:
   artifact_identity: "kumwe/approval"
   canonical_namespace_or_abi: "Kumwe\\Approval"
   branch: codex/integration-readiness-20260908
-  pull_request: "https://github.com/kumwe/approval/pull/4"
+  pull_request: https://github.com/kumwe/approval/pull/5
 ownership:
   responsibility: "Portable maker-checker bindings, approval state transitions, request/query values and transaction-bounded services through explicit host ports."
   non_responsibilities:
