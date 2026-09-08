@@ -1,0 +1,23 @@
+{
+  "status": "blocked",
+  "reason": "Exact dependency coordinates are recorded; independent artifact verification and the coordinated consumer release train remain required before adoption.",
+  "dependencies": {
+    "kumwe/access-context": {
+      "version": "0.1.2",
+      "attestation": null
+    },
+    "kumwe/access-control": {
+      "version": "0.1.2",
+      "attestation": null
+    },
+    "kumwe/audit": {
+      "version": "0.1.2",
+      "attestation": null
+    },
+    "kumwe/transaction": {
+      "version": "0.1.2",
+      "attestation": null
+    }
+  },
+  "required_followup": "Verify each selected immutable source/archive and its clean consumer independently, then attach external evidence without altering released source."
+}
