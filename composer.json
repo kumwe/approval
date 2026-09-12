@@ -37,20 +37,6 @@
   },
   "minimum-stability": "stable",
   "prefer-stable": true,
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/kumwe/access-control.git"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/kumwe/audit.git"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/kumwe/canonical-json.git"
-    }
-  ],
   "scripts": {
     "composer:validate": "composer validate --strict",
     "lint": "php tools/lint.php",

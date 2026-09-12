@@ -35,12 +35,10 @@ and enforce the expected request version/state. A changed active rule or expired
 proof fails closed. See [architecture](architecture.md) for the transition and
 query contracts and [public API](public-api.md) for all exported types.
 
-Pure library transitions, validation, factory wiring and hostile port behavior
-are tested in this package. App adoption will add tests for the real database,
-identity, transaction, audit, middleware and protected-action adapters. The
-current source map and consumer inventory identify those future App edits.
+Pure library transitions, validation, factory wiring and hostile port behavior are tested here. Core retains
+real database, identity, transaction, audit, middleware and protected-action integration tests. The
+[Core contract](core-contract.md), source map and consumer inventory define those responsibilities.
 
-This branch prepares release 0.1.1. Existing published exact dependency pins
-remain coherent. The next dependency update must wait for compatible Access
-Control and Audit successors, then update the complete dependency tuple and
-rerun the isolated Composer consumer and full package gate before adoption.
+The selected exact Context, Access Control, Audit and Transaction versions are all 0.1.2. Preserve a compatible
+consumer dependency tuple and resolve it from Packagist. Publication checks source/tag/dist identity; independent
+verification and Core integration require their own evidence.
