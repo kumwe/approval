@@ -1,9 +1,8 @@
 ---
-schema: "kumwe-migration-handoff/v2"
+schema: kumwe-package-release-record/v1
 artifact_kind: "framework_php"
 migration_id: "KUMWE-MIG-2026-023"
 change_set: "KUMWE-CS-2026-023"
-state: "draft_pr_open"
 source:
   app:
     repository: "https://github.com/kumwe/app"
@@ -30,15 +29,10 @@ source:
     - "kumwe/access-control"
     - "kumwe/audit"
     - "kumwe/transaction 0.1.2 at 56c8eb14a70bd3f1ed7eaeae7196a07d6627bf03"
-  active_related_pull_requests:
-    - "https://github.com/kumwe/access-control/pull/6"
-    - "https://github.com/kumwe/audit/pull/5"
 target:
   repository: "https://github.com/kumwe/approval"
   artifact_identity: "kumwe/approval"
   canonical_namespace_or_abi: "Kumwe\\Approval"
-  branch: codex/integration-readiness-20260908
-  pull_request: https://github.com/kumwe/approval/pull/5
 ownership:
   responsibility: "Portable maker-checker bindings, approval state transitions, request/query values and transaction-bounded services through explicit host ports."
   non_responsibilities:
@@ -395,7 +389,7 @@ documentation:
     - "examples/typed-consumer.php"
   changelog_record: "CHANGELOG.md ## 0.1.2"
 release_expectations:
-  version_policy: "Exact stable pre-1.0 pins; preserve existing releases and independently verify the successor before App adoption."
+  version_policy: "SemVer; exact stable pre-1.0 pins and independent source/archive verification for Core consumers."
   expected_artifact_types:
     - "Composer ZIP"
     - "GitHub source archive"
@@ -405,14 +399,13 @@ release_expectations:
     - "final Package gate"
   required_registry_or_installer: "Composer"
   required_external_attestation: true
-next_task:
-  phase_name: "Human successor review, release verification and coordinated dependency admission before App adoption"
+consumer_contract:
   permitted_only_when:
     - "Final package gates pass"
-    - "Successor release and exact dependencies are independently verified"
+    - "Selected release and exact dependencies are independently verified"
     - "App source drift is reconciled"
   consumer_repository: "kumwe/app"
-  dependency_or_native_change: "Transaction is pinned to published 0.1.2 at 56c8eb14a70bd3f1ed7eaeae7196a07d6627bf03. Keep the coherent Context/Access/Audit 0.1.0 tuple until compatible Access and Audit successors are published, then advance those exact pins together."
+  dependency_or_native_change: "Exact-pin compatible Approval, Context, Access Control, Audit and Transaction releases and regenerate Core composer.lock."
   namespace_or_api_replacements:
     - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalBinding => Kumwe\\Approval\\ApprovalBinding"
     - "Kumwe\\App\\BusinessSecurity\\Application\\Approval\\ApprovalDenied => Kumwe\\Approval\\ApprovalDenied"
@@ -463,81 +456,54 @@ next_task:
   capability_index_changes:
     - "Record package ownership from verified release manifests."
   changelog_and_evidence_changes:
-    - "Record verified source/artifact identity in the external attestation and App migration ledger."
+    - "Record verified source/artifact identity in external evidence and Core dependency records."
   verification_commands:
     - "composer check"
-    - "Affected App unit/integration suites and complete integration train gate"
-concurrency:
-  likely_conflict_files:
-    - "App composer.json"
-    - "App composer.lock"
-    - "App provider list and approval host adapters"
-  related_migrations:
-    - "KUMWE-MIG-2026-004"
-    - "KUMWE-MIG-2026-009"
-    - "KUMWE-MIG-2026-021"
-  ownership_conflicts: []
-  integration_train: null
-  resolution_rule: "semantic-preservation"
+    - "Affected Core unit/integration suites and the complete host integration gate"
 governance:
-  roadmap_source_sha256: "a202155ef1a65f5ab293d4f8397ebf4ac430db7f1e877c776bbe7851e6fe18d8"
-  roadmap_refs: []
-  non_roadmap_refs:
-    - "NRM-2026-024"
   completion_claim: false
 decisions:
-  - "No App edits, merges or releases in this task."
   - "Library owns portable behavior and conformance; App owns composed authority and integration."
   - "Malformed snapshots are refused at construction; projection flags never establish authority."
-blockers:
-  - "Independent successor and dependency release verification remains outstanding."
-  - "Latest Context cannot be selected in Approval until compatible Access and Audit successors are actually published."
+blockers: []
 ---
 
-## Migration/implementation summary
+# Approval release record
 
-The original 0.1.0 package is published. [PR #4](https://github.com/kumwe/approval/pull/4) is the boundary-validation successor; publication and independent release verification are separate observations.
+## Package contract
+
+Fifteen exported types own portable maker-checker bindings, transitions, query values, services and host ports.
 
 ## Public API and responsibility
 
-Fifteen exported types own the portable maker-checker workflow. Protected-action execution, credentials, database repositories and transaction coupling remain App responsibilities. See docs/public-api.md and docs/architecture.md.
+[Public API](public-api.md), [architecture](architecture.md) and [Core contract](core-contract.md) define ownership.
 
-## Capability reuse/semantic input review
+## Dependencies and semantic inputs
 
-MembershipDirectory stays owned by Access. The service consumes Access, Audit, Transaction, Context, Clock and UUID contracts directly. It never copies their implementations.
+Exact Context, Access Control, Audit and Transaction 0.1.2 dependencies supply the canonical contracts.
+MembershipDirectory remains owned by Access Control. Clock, UUID and container collaborators are explicit.
 
-## Consumer inventory
+## Consumer contract
 
-docs/source-map.json records the source baseline; docs/consumer-inventory.json lists current source/test/configuration users from that same baseline. Reconcile every changed App source before adoption.
+[Source mappings](source-map.json) and [consumer inventory](consumer-inventory.json) retain exact baselines.
+Core owns credentials, trusted contexts, protected actions, database repositories, replay fences and delivery.
 
 ## Test ownership
 
-Package tests own binding fields, role/separation checks, policy freshness, replay-port calls, expiry/state transitions, query ports and DI. Keep actual DB races, two-approver concurrency, audit rollback, step-up authority and protected-action integration in App.
+The package owns bindings, separation rules, freshness, replay-port calls, expiry/transitions, queries and DI.
+Core retains actual database races, two-approver concurrency, audit rollback, step-up and protected-action tests.
 
-## Next-task execution notes
+## Consumer verification
 
-The selected production dependency tuple is:
+Verify the selected exact release and dependency tuple independently. Run retained Core integration tests and
+validate that repository, ownership, replay-fence and audit writes share the actual transaction.
 
-- kumwe/access-context 0.1.2
-- kumwe/access-control 0.1.2
-- kumwe/audit 0.1.2
-- kumwe/transaction 0.1.2
+## Compatibility and drift
 
-Published dependency identities and independent archive consumers must be verified before adoption.
-The package gate enforces agreement between Composer constraints and the dependency evidence coordinates.
+Reconcile current Core code with source mappings before replacing imports or duplicate implementation tests.
+Context is supplied per operation; neither approval consumption nor presentation flags establish action authority.
 
-Require the complete package gate and independently verify the final release. The selected Context, Access and Audit 0.1.2 releases are the compatible published dependency graph. No App runtime switch occurs in this PR.
+## Validation
 
-## Drift check
-
-Reconcile mapped source and tests against the recorded App baseline and current App before any adoption.
-Newer portable behavior must move upstream first; preserve App authority, persistence and integration tests.
-
-## Validation recipe and observed local results
-
-Run composer check and release automation regressions; prove the no-dev classmap-authoritative consumer and real Laminas service construction. Exact final tested heads, archive digests and external release observations are recorded outside the tested tree.
-
-Transaction 0.1.2 is published at commit `56c8eb14a70bd3f1ed7eaeae7196a07d6627bf03`.
-Its TransactionManager source is byte-identical to 0.1.0 and it has no Kumwe runtime
-dependencies. The exact tag, Composer source and dist references were verified before
-updating this package. This dependency update does not require an Access/Audit release.
+Run `composer check`, examples and release automation regressions. CI proves the no-dev authoritative consumer
+and actual Laminas service construction; external evidence records published source and archive identities.

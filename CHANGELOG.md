@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Standardize linked package/CI/PHP/license badges and document the maintained Core integration contract.
+- Replace obsolete process narratives with a release record while preserving source mappings and test ownership.
+- Use Packagist for published dependencies by removing obsolete VCS repository overrides; keep exact versions.
+- Update archive and governed-manifest verification for the maintained record.
+
 ## 0.1.2
 
 - Align exact production requirements with the coordinated, validated extraction package graph.
